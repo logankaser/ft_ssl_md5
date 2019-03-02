@@ -11,7 +11,7 @@
 # **************************************************************************** #
 
 NAME = ft_ssl
-LIST = main
+LIST = main sha2_256 md5 utility
 
 OBJ_DIR = obj
 VPATH = src
