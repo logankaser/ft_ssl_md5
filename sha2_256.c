@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   sha2_256.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lkaser <lkaser@student.42.us.org>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/03/04 13:36:21 by lkaser            #+#    #+#             */
+/*   Updated: 2019/03/04 13:36:22 by lkaser           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <stdint.h>
 #include "libft.h"
 #include "ft_ssl.h"
@@ -27,7 +39,18 @@ static uint32_t g_sha2_round[64] = {
 	0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-uint8_t		*sha2_pad(const char *data, uint64_t data_len)
+static uint32_t g_sha2_256_init[8] = {
+	0x6a09e667,
+	0xbb67ae85,
+	0x3c6ef372,
+	0xa54ff53a,
+	0x510e527f,
+	0x9b05688c,
+	0x1f83d9ab,
+	0x5be0cd19
+};
+
+uint8_t			*sha2_pad(const char *data, uint64_t data_len)
 {
 	uint8_t		*m;
 	uint64_t	i;
@@ -41,7 +64,6 @@ uint8_t		*sha2_pad(const char *data, uint64_t data_len)
 	i = len;
 	m[i++] = 0x80;
 	data_len *= 8;
-
 	m[63] = data_len;
 	m[62] = data_len >> 8;
 	m[61] = data_len >> 16;
@@ -50,13 +72,6 @@ uint8_t		*sha2_pad(const char *data, uint64_t data_len)
 	m[58] = data_len >> 40;
 	m[57] = data_len >> 48;
 	m[56] = data_len >> 56;
-
-	// for (int i = 0; i < 64; ++i)
-	// {
-	// 	printf("%08X", m[i]);
-	// }
-	// printf("\n");
-
 	return (m);
 }
 
@@ -85,7 +100,14 @@ uint8_t		*sha2_pad(const char *data, uint64_t data_len)
 #define SIG0(x) (ROTATE_RIGHT(x, 7) ^ ROTATE_RIGHT(x, 18) ^ ((x) >> 3))
 #define SIG1(x) (ROTATE_RIGHT(x, 17) ^ ROTATE_RIGHT(x, 19) ^ ((x) >> 10))
 
-void			ft_sha2_256_transform(uint32_t state[16], const uint8_t *data)
+/*
+** Beware of endianess!
+** First we copy into the working buffer, then we extend those 16 bytes into
+** 64 with a lot of mixing
+** Next we have compression loop much like md5.
+*/
+
+void			ft_sha2_256_transform(uint32_t state[16], const uint8_t *d)
 {
 	uint32_t temp1;
 	uint32_t temp2;
@@ -93,34 +115,22 @@ void			ft_sha2_256_transform(uint32_t state[16], const uint8_t *data)
 	uint32_t j;
 	uint32_t m[64];
 
-	/*
-	** Copy with endianess swap.
-	*/
 	i = 0;
 	j = 0;
 	while (i < 16)
 	{
-		m[i] = (data[j] << 24) | (data[j + 1] << 16) | (data[j + 2] << 8) | (data[j + 3]);
+		m[i] = (d[j] << 24) | (d[j + 1] << 16) | (d[j + 2] << 8) | (d[j + 3]);
 		++i;
 		j += 4;
 	}
-	
-	/*
-	** Extend 0-16 to 0-64.
-	*/
 	while (i < 64)
 	{
 		m[i] = SIG1(m[i - 2]) + m[i - 7] + SIG0(m[i - 15]) + m[i - 16];
 		++i;
 	}
-
 	ft_memcpy(state, state + 8, sizeof(uint32_t) * 8);
-
-	/*
-	** Compression loop
-	*/
 	i = 0;
-	while (i < 64) 
+	while (i < 64)
 	{
 		temp1 = H + EP1(E) + CH(E, F, G) + g_sha2_round[i] + m[i];
 		temp2 = EP0(A) + MAJ(A, B, C);
@@ -152,28 +162,16 @@ char			*ft_sha2_256(const char *data)
 	uint32_t	state[16];
 	uint8_t		hash[32];
 
-
 	len = ft_strlen(data);
-	A_ = 0x6a09e667;
-	B_ = 0xbb67ae85;
-	C_ = 0x3c6ef372;
-	D_ = 0xa54ff53a;
-	E_ = 0x510e527f;
-	F_ = 0x9b05688c;
-	G_ = 0x1f83d9ab;
-	H_ = 0x5be0cd19;
+	ft_memcpy(state + 8, g_sha2_256_init, sizeof(uint32_t) * 8);
 	if (len < 56)
 	{
 		padded = sha2_pad(data, len);
 		ft_sha2_256_transform(state, padded);
 		free(padded);
 	}
-
-	/*
-	** Endian swap to to get ready to output.
-	*/
 	i = 0;
-	while (i < 4) 
+	while (i < 4)
 	{
 		hash[i] = (A_ >> (24 - i * 8)) & 0x000000ff;
 		hash[i + 4] = (B_ >> (24 - i * 8)) & 0x000000ff;
@@ -185,7 +183,6 @@ char			*ft_sha2_256(const char *data)
 		hash[i + 28] = (H_ >> (24 - i * 8)) & 0x000000ff;
 		++i;
 	}
-
 	return (bytes_to_hex(hash, 32));
 }
 

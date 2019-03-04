@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   md5.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lkaser <lkaser@student.42.us.org>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/03/04 13:40:45 by lkaser            #+#    #+#             */
+/*   Updated: 2019/03/04 13:40:46 by lkaser           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <stdint.h>
 #include "libft.h"
 #include "ft_ssl.h"
@@ -123,7 +135,6 @@ char			*ft_md5(const char *data)
 		ft_md5_transform(state, padded);
 		free(padded);
 	}
-
 	return (bytes_to_hex((uint8_t*)(state + 4), 16));
 }
 

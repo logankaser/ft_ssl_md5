@@ -14,8 +14,13 @@
 #include "libft.h"
 #include "ft_ssl.h"
 
-// md5: "apple" -> 1f3870be274f6c49b3e31a0c6728957f
-// sha-2-256 "apple" -> 3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b
+/*
+** md5: "apple"
+** -> 1f3870be274f6c49b3e31a0c6728957f
+** sha-2-256 "apple"
+** -> 3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b
+**.
+*/
 
 int				main(int argc, char **argv)
 {

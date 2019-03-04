@@ -3,6 +3,7 @@ DS*
 .nfs*
 ._*
 *.swp*
+sha256_reference.c
 
 # Prerequisites
 *.d
