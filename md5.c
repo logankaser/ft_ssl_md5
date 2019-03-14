@@ -58,54 +58,69 @@ static uint32_t	g_md5_round[64] = {
 #define C_ (state[6])
 #define D_ (state[7])
 
-uint32_t		*md5_pad(const char *data, uint64_t data_len)
+static uint8_t	*md5_pad(const uint8_t *data, uint64_t *data_len)
 {
-	uint32_t	*m;
+	uint8_t		*m;
 	uint64_t	len;
 	uint64_t	pad_len;
 
-	len = ft_strlen(data);
+	len = ft_strlen((char*)data);
 	pad_len = ((len + 72) / 64) * 64;
 	m = ft_memalloc(pad_len);
 	ft_memcpy(m, data, len);
-	((uint8_t*)m)[len] = 0x80;
-	data_len *= 8;
-	m[pad_len / 4 - 2] = data_len;
-	m[pad_len / 4 - 1] = (data_len & 0xffffffff00000000) >> 32;
-	return ((uint32_t*)m);
+	m[len] = 0x80;
+	*data_len = pad_len;
+	len *= 8;
+	m[--pad_len] = len >> 56;
+	m[--pad_len] = len >> 48;
+	m[--pad_len] = len >> 40;
+	m[--pad_len] = len >> 32;
+	m[--pad_len] = len >> 24;
+	m[--pad_len] = len >> 16;
+	m[--pad_len] = len >> 8;
+	m[--pad_len] = len;
+	return (m);
 }
 
-void			ft_md5_transform(uint32_t state[8], const uint32_t *chunks)
+static void		md5_rounds(uint32_t state[8],
+	uint32_t *f, uint32_t *g, uint32_t i)
+{
+	if (i < 16)
+	{
+		*f = (B & C) | ((~B) & D);
+		*g = i;
+	}
+	else if (i < 32)
+	{
+		*f = (D & B) | ((~D) & C);
+		*g = (5 * i + 1) % 16;
+	}
+	else if (i < 48)
+	{
+		*f = B ^ C ^ D;
+		*g = (3 * i + 5) % 16;
+	}
+	else
+	{
+		*f = C ^ (B | (~D));
+		*g = (7 * i) % 16;
+	}
+}
+
+static void		md5_transform(uint32_t state[8], const uint8_t *data)
 {
 	uint32_t	f;
 	uint32_t	g;
 	uint32_t	i;
+	uint32_t	m[16];
 
+	ft_memcpy(m, data, sizeof(uint32_t) * 16);
 	ft_memcpy(state, state + 4, sizeof(uint32_t) * 4);
 	i = 0;
 	while (i < 64)
 	{
-		if (i < 16)
-		{
-			f = (B & C) | ((~B) & D);
-			g = i;
-		}
-		else if (i < 32)
-		{
-			f = (D & B) | ((~D) & C);
-			g = (5 * i + 1) % 16;
-		}
-		else if (i < 48)
-		{
-			f = B ^ C ^ D;
-			g = (3 * i + 5) % 16;
-		}
-		else
-		{
-			f = C ^ (B | (~D));
-			g = (7 * i) % 16;
-		}
-		f = f + A + g_md5_round[i] + chunks[g];
+		md5_rounds(state, &f, &g, i);
+		f = f + A + g_md5_round[i] + m[g];
 		A = D;
 		D = C;
 		C = B;
@@ -118,23 +133,25 @@ void			ft_md5_transform(uint32_t state[8], const uint32_t *chunks)
 	D_ += D;
 }
 
-char			*ft_md5(const char *data)
+char			*ft_md5(const uint8_t *raw_data)
 {
-	uint64_t	len;
 	uint32_t	state[8];
-	uint32_t	*padded;
+	uint8_t		*data;
+	uint64_t	len;
+	uint64_t	i;
 
-	len = ft_strlen(data);
 	A_ = 0x67452301;
 	B_ = 0xefcdab89;
 	C_ = 0x98badcfe;
 	D_ = 0x10325476;
-	if (len < 56)
+	data = md5_pad(raw_data, &len);
+	i = 0;
+	while (i < len)
 	{
-		padded = md5_pad(data, len);
-		ft_md5_transform(state, padded);
-		free(padded);
+		md5_transform(state, data + i);
+		i += 64;
 	}
+	free(data);
 	return (bytes_to_hex((uint8_t*)(state + 4), 16));
 }
 

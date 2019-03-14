@@ -6,12 +6,12 @@
 #    By: logan  <logan@42.us.org>                   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/03/13 10:03:24 by logan             #+#    #+#              #
-#    Updated: 2019/01/15 18:01:08 by lkaser           ###   ########.fr        #
+#    Updated: 2019/03/13 15:43:32 by lkaser           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ft_ssl
-LIST = main sha2_256 md5 utility
+LIST = main sha2_256 sha1 md5 utility
 
 OBJ_DIR = obj
 VPATH = src
@@ -24,7 +24,7 @@ SUB = libft
 
 INCLUDES = -I libft/includes -I src
 
-CPPFLAGS = -Wall -Wextra -Werror -g -O2 -march=native \
+CPPFLAGS = -Wall -Wextra -Werror -g -O3 -march=native \
 $(INCLUDES) \
 -fsanitize=address -fsanitize=undefined
 

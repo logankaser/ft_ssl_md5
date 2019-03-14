@@ -34,6 +34,8 @@
 # define FT_UTOA_BASE(nbr, base) ft_utoa_base(nbr, base, sizeof base - 1)
 # define TRUE (1)
 # define FALSE (0)
+# define MIN(a, b) (((a) > (b)) ? a : b)
+# define MAX(a, b) (((a) > (b)) ? b : a)
 
 typedef char		t_bool;
 
@@ -255,5 +257,6 @@ t_bool				ft_compare_int_asc(const void *a, const void *b);
 */
 
 int					ft_printf(char *format, ...);
+int					ft_fprintf(FILE *stream, const char *format, ...);
 
 #endif

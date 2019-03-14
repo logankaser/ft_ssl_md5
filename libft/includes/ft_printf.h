@@ -100,6 +100,8 @@ typedef struct			s_printf
 }						t_printf;
 
 void					format_print(t_printf pf, t_uvector *s);
+void					format_iter(t_uvector *s, char *f, va_list args);
 int						ft_printf(char *format, ...);
+int						ft_fprintf(FILE *stream, const char *format, ...);
 
 #endif

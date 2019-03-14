@@ -23,14 +23,13 @@
 # define ROTATE_LEFT(x, c) (((x) << c) | ((x) >> ((sizeof(x) * 8) - c)))
 
 /*
-** Simple interface.
+** Interface.
 */
-char	*ft_md5(const char *data);
-char	*ft_sha2_256(const char *data);
+char	*ft_md5(const uint8_t *data);
+char	*ft_sha2_256(const uint8_t *data);
+char	*ft_sha(const uint8_t *data);
 
-/*
-** Streaming interface.
-*/
+typedef char	*t_hash_function(const uint8_t *data);
 
 /*
 ** Utility functions.

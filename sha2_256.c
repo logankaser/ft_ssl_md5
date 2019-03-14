@@ -50,28 +50,27 @@ static uint32_t g_sha2_256_init[8] = {
 	0x5be0cd19
 };
 
-uint8_t			*sha2_pad(const char *data, uint64_t data_len)
+static uint8_t	*sha2_pad(const uint8_t *data, uint64_t *data_len)
 {
 	uint8_t		*m;
-	uint64_t	i;
 	uint64_t	len;
 	uint64_t	pad_len;
 
-	len = ft_strlen(data);
+	len = ft_strlen((char*)data);
 	pad_len = ((len + 72) / 64) * 64;
 	m = ft_memalloc(pad_len);
 	ft_memcpy(m, data, len);
-	i = len;
-	m[i++] = 0x80;
-	data_len *= 8;
-	m[63] = data_len;
-	m[62] = data_len >> 8;
-	m[61] = data_len >> 16;
-	m[60] = data_len >> 24;
-	m[59] = data_len >> 32;
-	m[58] = data_len >> 40;
-	m[57] = data_len >> 48;
-	m[56] = data_len >> 56;
+	m[len] = 0x80;
+	*data_len = pad_len;
+	len *= 8;
+	m[--pad_len] = len;
+	m[--pad_len] = len >> 8;
+	m[--pad_len] = len >> 16;
+	m[--pad_len] = len >> 24;
+	m[--pad_len] = len >> 32;
+	m[--pad_len] = len >> 40;
+	m[--pad_len] = len >> 48;
+	m[--pad_len] = len >> 56;
 	return (m);
 }
 
@@ -101,16 +100,45 @@ uint8_t			*sha2_pad(const char *data, uint64_t data_len)
 #define SIG1(x) (ROTATE_RIGHT(x, 17) ^ ROTATE_RIGHT(x, 19) ^ ((x) >> 10))
 
 /*
+** Norm is bad.
+*/
+
+#define S(x) (x ## _ += x)
+#define SAVE_ROUND_STATE S(A);S(B);S(C);S(D);S(E);S(F);S(G);S(H)
+
+/*
 ** Beware of endianess!
 ** First we copy into the working buffer, then we extend those 16 bytes into
 ** 64 with a lot of mixing
 ** Next we have compression loop much like md5.
 */
 
-void			ft_sha2_256_transform(uint32_t state[16], const uint8_t *d)
+static void		sha2_256_mix(uint32_t state[16], uint32_t m[64])
 {
 	uint32_t temp1;
 	uint32_t temp2;
+	uint32_t i;
+
+	i = 0;
+	while (i < 64)
+	{
+		temp1 = H + EP1(E) + CH(E, F, G) + g_sha2_round[i] + m[i];
+		temp2 = EP0(A) + MAJ(A, B, C);
+		H = G;
+		G = F;
+		F = E;
+		E = D + temp1;
+		D = C;
+		C = B;
+		B = A;
+		A = temp1 + temp2;
+		++i;
+	}
+	SAVE_ROUND_STATE;
+}
+
+static void		sha2_256_transform(uint32_t state[16], const uint8_t *d)
+{
 	uint32_t i;
 	uint32_t j;
 	uint32_t m[64];
@@ -129,47 +157,13 @@ void			ft_sha2_256_transform(uint32_t state[16], const uint8_t *d)
 		++i;
 	}
 	ft_memcpy(state, state + 8, sizeof(uint32_t) * 8);
-	i = 0;
-	while (i < 64)
-	{
-		temp1 = H + EP1(E) + CH(E, F, G) + g_sha2_round[i] + m[i];
-		temp2 = EP0(A) + MAJ(A, B, C);
-		H = G;
-		G = F;
-		F = E;
-		E = D + temp1;
-		D = C;
-		C = B;
-		B = A;
-		A = temp1 + temp2;
-		++i;
-	}
-	A_ += A;
-	B_ += B;
-	C_ += C;
-	D_ += D;
-	E_ += E;
-	F_ += F;
-	G_ += G;
-	H_ += H;
+	sha2_256_mix(state, m);
 }
 
-char			*ft_sha2_256(const char *data)
+static char		*hash_little_endian(const uint32_t state[16], uint8_t hash[32])
 {
-	uint64_t	len;
-	uint32_t	i;
-	uint8_t		*padded;
-	uint32_t	state[16];
-	uint8_t		hash[32];
+	uint32_t i;
 
-	len = ft_strlen(data);
-	ft_memcpy(state + 8, g_sha2_256_init, sizeof(uint32_t) * 8);
-	if (len < 56)
-	{
-		padded = sha2_pad(data, len);
-		ft_sha2_256_transform(state, padded);
-		free(padded);
-	}
 	i = 0;
 	while (i < 4)
 	{
@@ -181,9 +175,29 @@ char			*ft_sha2_256(const char *data)
 		hash[i + 20] = (F_ >> (24 - i * 8)) & 0x000000ff;
 		hash[i + 24] = (G_ >> (24 - i * 8)) & 0x000000ff;
 		hash[i + 28] = (H_ >> (24 - i * 8)) & 0x000000ff;
-		++i;
+		i += 1;
 	}
 	return (bytes_to_hex(hash, 32));
+}
+
+char			*ft_sha2_256(const uint8_t *raw_data)
+{
+	uint32_t	state[16];
+	uint8_t		hash[32];
+	uint8_t		*data;
+	uint64_t	len;
+	uint64_t	i;
+
+	ft_memcpy(state + 8, g_sha2_256_init, sizeof(uint32_t) * 8);
+	data = sha2_pad(raw_data, &len);
+	i = 0;
+	while (i < len)
+	{
+		sha2_256_transform(state, data + i);
+		i += 64;
+	}
+	free(data);
+	return (hash_little_endian(state, hash));
 }
 
 #undef A
