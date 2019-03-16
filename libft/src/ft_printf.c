@@ -149,7 +149,7 @@ void			format_iter(t_uvector *s, char *f, va_list args)
 int				ft_printf(char *format, ...)
 {
 	t_uvector	s;
-	va_list 	args;
+	va_list		args;
 
 	if (format)
 	{
