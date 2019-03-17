@@ -23,7 +23,9 @@ ft_striteri ft_strjoin ft_strlcat ft_strlen ft_strmap ft_strmapi ft_strncat \
 ft_strncmp ft_strncpy ft_strnequ ft_strnew ft_strnstr ft_strrchr ft_strsplit \
 ft_strstr ft_strsub ft_strtrim ft_str_has_only ft_strprepend ft_strappend \
 ft_tolower ft_toupper ft_utoa_base ft_wchar_utf8 ft_vector ft_uvector \
-get_next_line ft_printf format ft_fnv ft_map ft_map_internal ft_fprintf
+ft_fnv ft_map ft_map_internal \
+format ft_fprintf ft_strf ft_printf \
+get_next_line
 
 VPATH = src
 

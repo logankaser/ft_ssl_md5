@@ -25,15 +25,26 @@
 /*
 ** Interface.
 */
-char	*ft_md5(const uint8_t *data);
-char	*ft_sha2_256(const uint8_t *data);
-char	*ft_sha(const uint8_t *data);
+char			*ft_md5(const uint8_t *data);
+char			*ft_sha2_256(const uint8_t *data);
+char			*ft_sha(const uint8_t *data);
 
 typedef char	*t_hash_function(const uint8_t *data);
 
 /*
 ** Utility functions.
 */
-char	*bytes_to_hex(const uint8_t *bytes, size_t size);
+char			*bytes_to_hex(const uint8_t *bytes, size_t size);
+
+/*
+** Command line flags.
+*/
+
+typedef struct	s_flags
+{
+	uint8_t		quiet : 1;
+	uint8_t		reverse : 1;
+	uint8_t		read_stdin : 1;
+}				t_flags;
 
 #endif

@@ -258,5 +258,6 @@ t_bool				ft_compare_int_asc(const void *a, const void *b);
 
 int					ft_printf(char *format, ...);
 int					ft_fprintf(FILE *stream, const char *format, ...);
+char				*ft_strf(const char *format, ...);
 
 #endif
